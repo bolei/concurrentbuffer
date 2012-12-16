@@ -26,27 +26,33 @@ public abstract class AbstractBufferFrameworkImpl<T> implements
 
 	@Override
 	public void startFramework(int scaleupThreshold) {
-		// TODO Auto-generated method stub
-
+		startFramework();
+		this.scaleupThreshold = scaleupThreshold;
 	}
 
 	@Override
-	public void startFramework(ItemHandler<T> handlers, int numberHandlers) {
-		// TODO Auto-generated method stub
-
+	public void startFramework(ItemHandler<T> handler, int numberHandlers) {
+		buffer = createBufferModel();
+		for (int i = 0; i < numberHandlers; i++) {
+			Thread consumerThread = new Thread(new ConsumerTask<T>(
+					handler.makeCopy(), buffer));
+			consumerThread.start();
+			threadPool.add(consumerThread);
+		}
 	}
 
 	@Override
-	public void startFramework(ItemHandler<T> handlers, int numberHandlers,
+	public void startFramework(ItemHandler<T> handler, int numberHandlers,
 			int scaleupThreshold) {
-		// TODO Auto-generated method stub
-
+		startFramework(handler, numberHandlers);
+		this.scaleupThreshold = scaleupThreshold;
 	}
 
 	@Override
 	public void bufferItem(T item) {
 		synchronized (buffer) {
 			buffer.pushItem(item);
+			buffer.notify();
 		}
 	}
 
@@ -56,6 +62,7 @@ public abstract class AbstractBufferFrameworkImpl<T> implements
 			for (T item : items) {
 				buffer.pushItem(item);
 			}
+			buffer.notify();
 		}
 	}
 
@@ -63,4 +70,6 @@ public abstract class AbstractBufferFrameworkImpl<T> implements
 	public Class<T> getItemClass() {
 		return type;
 	}
+
+	protected abstract BufferModel<T> createBufferModel();
 }
