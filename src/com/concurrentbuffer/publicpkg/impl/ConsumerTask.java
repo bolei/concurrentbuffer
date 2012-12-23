@@ -1,5 +1,6 @@
 package com.concurrentbuffer.publicpkg.impl;
 
+import com.concurrentbuffer.exception.BufferEmptyException;
 import com.concurrentbuffer.publicpkg.ItemHandler;
 
 public class ConsumerTask<T> implements Runnable {
@@ -16,13 +17,22 @@ public class ConsumerTask<T> implements Runnable {
 		T item;
 		try {
 			while (!Thread.interrupted()) {
+				item = null;
 				synchronized (bufferModel) {
 					while (bufferModel.isEmpty()) {
 						bufferModel.wait();
 					}
-					item = bufferModel.getItem();
+					try {
+						item = bufferModel.getItem();
+					} catch (BufferEmptyException e) {
+						e.printStackTrace();
+					} finally {
+						bufferModel.notifyAll();
+					}
 				}
-				itemHandler.handleItem(item);
+				if (item != null) {
+					itemHandler.handleItem(item);
+				}
 			}
 		} catch (InterruptedException e) {
 			System.out.println("interupted!");

@@ -3,6 +3,7 @@ package com.concurrentbuffer.publicpkg.impl;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.concurrentbuffer.exception.BufferFullException;
 import com.concurrentbuffer.publicpkg.ConcurrentBufferFramework;
 import com.concurrentbuffer.publicpkg.ItemHandler;
 
@@ -51,19 +52,41 @@ public abstract class AbstractBufferFrameworkImpl<T> implements
 	@Override
 	public void bufferItem(T item) {
 		synchronized (buffer) {
-			buffer.pushItem(item);
-			buffer.notify();
+			try {
+				while (buffer.isFull()) {
+					buffer.wait();
+				}
+				buffer.pushItem(item);
+			} catch (BufferFullException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				buffer.notifyAll();
+			}
 		}
+
 	}
 
 	@Override
 	public void bufferItem(List<T> items) {
 		synchronized (buffer) {
-			for (T item : items) {
-				buffer.pushItem(item);
+			try {
+				while (!buffer.hasEnoughSpace(items.size())) {
+					buffer.wait();
+				}
+				for (T item : items) {
+					buffer.pushItem(item);
+				}
+			} catch (BufferFullException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				buffer.notifyAll();
 			}
-			buffer.notify();
 		}
+
 	}
 
 	@Override
