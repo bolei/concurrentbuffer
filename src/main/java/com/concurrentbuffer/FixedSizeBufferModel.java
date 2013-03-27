@@ -1,9 +1,8 @@
-package com.concurrentbuffer.publicpkg.impl;
+package com.concurrentbuffer;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.collections.list.FixedSizeList;
 
 import com.concurrentbuffer.exception.BufferEmptyException;
 import com.concurrentbuffer.exception.BufferFullException;
@@ -17,12 +16,19 @@ public class FixedSizeBufferModel<T> implements BufferModel<T> {
 	private int begin = 0;
 	private int end = 0; // points to the next cell of the last element
 
+	private List<ConsumerTask<T>> consumers = new LinkedList<ConsumerTask<T>>();
+
 	@SuppressWarnings("unchecked")
 	public FixedSizeBufferModel(int size) {
 		// no element is put into the cell before start position
 		this.capacity = size;
-		buffer = FixedSizeList
-				.decorate(Arrays.asList(new Object[capacity + 1]));
+		buffer = Arrays.asList((T[]) new Object[capacity + 1]);
+	}
+
+	public void startModel() {
+		for (ConsumerTask<T> consumer : consumers) {
+			new Thread(consumer).start();
+		}
 	}
 
 	@Override
@@ -59,6 +65,20 @@ public class FixedSizeBufferModel<T> implements BufferModel<T> {
 
 	private int getElementCount() {
 		return (end - begin) % buffer.size();
+	}
+
+	@Override
+	public void registerConsumer(ConsumerTask<T> consumer) {
+		consumer.setBufferModel(this);
+		consumers.add(consumer);
+	}
+
+	@Override
+	public void registerConsumers(List<ConsumerTask<T>> listConsumers) {
+		for (ConsumerTask<T> consumer : listConsumers) {
+			consumer.setBufferModel(this);
+			consumers.add(consumer);
+		}
 	}
 
 }

@@ -1,4 +1,6 @@
-package com.concurrentbuffer.publicpkg.impl;
+package com.concurrentbuffer;
+
+import java.util.List;
 
 import com.concurrentbuffer.exception.BufferEmptyException;
 import com.concurrentbuffer.exception.BufferFullException;
@@ -15,4 +17,8 @@ public interface BufferModel<T> {
 
 	public boolean hasEnoughSpace(int requiredSpace);
 
+	public void registerConsumer(ConsumerTask<T> consumer);
+
+	public void registerConsumers(List<ConsumerTask<T>> listConsumers);
+	
 }

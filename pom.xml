@@ -16,11 +16,4 @@
       </plugin>
     </plugins>
   </build>
-  <dependencies>
-  	<dependency>
-  		<groupId>commons-collections</groupId>
-  		<artifactId>commons-collections</artifactId>
-  		<version>20040616</version>
-  	</dependency>
-  </dependencies>
 </project>

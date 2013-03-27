@@ -1,16 +1,9 @@
-package com.concurrentbuffer.publicpkg.impl;
+package com.concurrentbuffer;
 
 import com.concurrentbuffer.exception.BufferEmptyException;
-import com.concurrentbuffer.publicpkg.ItemHandler;
 
-public class ConsumerTask<T> implements Runnable {
-	private ItemHandler<T> itemHandler;
+public abstract class ConsumerTask<T> implements Runnable {
 	private BufferModel<T> bufferModel;
-
-	public ConsumerTask(ItemHandler<T> handler, BufferModel<T> buffer) {
-		itemHandler = handler;
-		this.bufferModel = buffer;
-	}
 
 	@Override
 	public void run() {
@@ -31,11 +24,18 @@ public class ConsumerTask<T> implements Runnable {
 					}
 				}
 				if (item != null) {
-					itemHandler.handleItem(item);
+					consume(item);
 				}
 			}
 		} catch (InterruptedException e) {
 			System.out.println("interupted!");
 		}
 	}
+
+	protected void setBufferModel(BufferModel<T> buff) {
+		bufferModel = buff;
+	}
+
+	protected abstract void consume(T item);
+
 }
